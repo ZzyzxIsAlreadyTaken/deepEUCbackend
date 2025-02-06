@@ -19,11 +19,10 @@ app.post('/api/chat', async (req, res) => {
     const modelToUse = req.body.model || 'deepseek'; // Default to deepseek if not specified
     console.log(`Using ${modelToUse} model for chat request`);
 
-    if (modelToUse === 'gemini') {
-      // Combine system and user messages into a single prompt
+    if (modelToUse.startsWith('gemini')) {
       const systemPrefix = 'You are a helpful assistant who is really nerdy. Always include a super nerdy reference in your responses and start with a greeting to EUCperson.\n\n';
       const userMessage = `Please include some crazy emojis in your responses: ${req.body.message}`;
-      const response = await callGeminiAPI(systemPrefix + userMessage);
+      const response = await callGeminiAPI(systemPrefix + userMessage, modelToUse);
       res.json({ response });
       return;
     }
@@ -78,12 +77,12 @@ app.post('/api/chat', async (req, res) => {
   }
 });
 
-async function callGeminiAPI(prompt) {
-  console.log('Using Gemini model for chat request');
+async function callGeminiAPI(prompt, modelVersion) {
+  console.log(`Using ${modelVersion} for chat request`);
   
   try {
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: modelVersion });
     
     const result = await model.generateContent(prompt);
     const response = await result.response;
