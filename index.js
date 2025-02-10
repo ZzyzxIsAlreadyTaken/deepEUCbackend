@@ -16,13 +16,23 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 app.post('/api/chat', async (req, res) => {
   try {
-    const modelToUse = req.body.model || 'deepseek'; // Default to deepseek if not specified
+    const modelToUse = req.body.model || 'deepseek';
+    const userMessage = req.body.message;
     console.log(`Using ${modelToUse} model for chat request`);
 
+    // Detect if message is in Norwegian (simple check for Norwegian characters)
+    const isNorwegian = /[æøåÆØÅ]/.test(userMessage) || 
+                        userMessage.toLowerCase().includes('jeg') ||
+                        userMessage.toLowerCase().includes('ikke');
+
+    const languageInstruction = isNorwegian ? 
+      'Svar alltid på norsk. ' : 
+      '';
+
     if (modelToUse.startsWith('gemini')) {
-      const systemPrefix = 'You are a helpful assistant who is really nerdy. Always include a super nerdy reference in your responses and start with a greeting to EUCperson.\n\n';
-      const userMessage = `Please include some crazy emojis in your responses: ${req.body.message}`;
-      const response = await callGeminiAPI(systemPrefix + userMessage, modelToUse);
+      const systemPrefix = `${languageInstruction}You are a helpful assistant who is really nerdy. Always include a super nerdy reference in your responses and start with a greeting to EUCperson.\n\n`;
+      const userPrompt = `Please include some crazy emojis in your responses: ${userMessage}`;
+      const response = await callGeminiAPI(systemPrefix + userPrompt, modelToUse);
       res.json({ response });
       return;
     }
@@ -31,11 +41,11 @@ app.post('/api/chat', async (req, res) => {
     const messages = [
       {
         role: 'system',
-        content: 'You are a helpful assistant who is really nerdy. Always include a super nerdy reference in your responses and start with a greeting to EUCperson.'
+        content: `${languageInstruction}You are a helpful assistant who is really nerdy. Always include a super nerdy reference in your responses and start with a greeting to EUCperson.`
       },
       {
         role: 'user',
-        content: `Please include some crazy emojis in your responses: ${req.body.message}`
+        content: `Please include some crazy emojis in your responses: ${userMessage}`
       }
     ];
 
