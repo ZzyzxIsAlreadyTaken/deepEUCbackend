@@ -31,7 +31,7 @@ app.post('/api/chat', async (req, res) => {
 
     if (modelToUse.startsWith('gemini')) {
       const systemPrefix = `${languageInstruction}You are a helpful assistant who is really nerdy. Always include a super nerdy reference in your responses and start with a greeting to EUCperson.\n\n`;
-      const userPrompt = `Please include some crazy emojis in your responses: ${userMessage}`;
+      const userPrompt = `${userMessage}`;
       const response = await callGeminiAPI(systemPrefix + userPrompt, modelToUse);
       res.json({ response });
       return;
@@ -45,7 +45,7 @@ app.post('/api/chat', async (req, res) => {
       },
       {
         role: 'user',
-        content: `Please include some crazy emojis in your responses: ${userMessage}`
+        content: `${userMessage}`
       }
     ];
 
